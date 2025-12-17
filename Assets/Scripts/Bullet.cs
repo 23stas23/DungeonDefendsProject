@@ -5,14 +5,14 @@ public class Bullet : MonoBehaviour
     public int damage;
     [SerializeField] private float speed;
     [SerializeField] private float time;
-    [SerializeField] private Rigidbody2D rb;
 
     void Start()
     {
-        Destroy(gameObject, time);
+        Destroy(gameObject, time); // Destroy bullet after lifetime
     }
     void FixedUpdate()
     {
+        //Move forward in local direction 
         transform.Translate(speed * Time.fixedDeltaTime, 0, 0);
     }
     void OnTriggerEnter2D(Collider2D collision)
@@ -20,7 +20,7 @@ public class Bullet : MonoBehaviour
         if (collision.CompareTag("Enemy"))
         {
             collision.GetComponent<EnemySystem>().TakeDamage(damage);
-            
+            Destroy(gameObject);
         }
     }
 }

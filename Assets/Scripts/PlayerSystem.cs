@@ -5,6 +5,9 @@ using UnityEngine.PlayerLoop;
 
 public class PlayerSystem : MonoBehaviour
 {
+    [SerializeField] GameManager gameManager;
+    [SerializeField] private Rigidbody2D rb;
+
     [Header("Characteristic")]
     public float maxHealth;
     public float currentHealth;
@@ -50,37 +53,65 @@ public class PlayerSystem : MonoBehaviour
     [SerializeField] private TMP_Text manaText;
     [Space(10)]
 
-    private float timerArrmor;
+    [Header("Help UI")]
+    [SerializeField] private GameObject help_TextForTeleport;
+    [SerializeField] private bool ActiveHelpTeleport;
 
-    private Rigidbody2D rb;
+    private float timerArrmor;
     private float horizontal, vertical;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-
-        if (weapoints.Length > 0)
-        {
-            SpawnWeapoint();
-        }
+        if (weapoints.Length > 0) SpawnWeapoint(); // Spawn first weapoint
     }
     private void Update()
     {
+        // X button (Joistick) shoot or attack
         if (Input.GetButton("Fire1"))
         {
             Attack();
         }
+        // A button (Joistick) chenge weapon
         if (Input.GetButtonDown("ChengeWeapoint"))
         {
             ChengeWeapoint();
         }
+        // B button (Joistick) Teleport to next level
+        if (ActiveHelpTeleport)
+        {
+            if (Input.GetButton("NextLevel"))
+            {
+                gameManager.Nextlevel();
+                ActiveHelpTeleport = false;
+            }
+        }
+        help_TextForTeleport.SetActive(ActiveHelpTeleport);
+
+        timerArrmor -= Time.deltaTime;
+        UpdateCharacteristic();
+        RestorationOfProtection();
     }
 
     void FixedUpdate()
     {
         Movment();
-        UpdateCharacteristic();
-        RestorationOfProtection();
+        
+    }
+
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Portal"))
+        {
+            ActiveHelpTeleport = true;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Portal"))
+        {
+            ActiveHelpTeleport = false;
+        }
     }
 
     private void Movment()
@@ -95,12 +126,15 @@ public class PlayerSystem : MonoBehaviour
     }
     private void UpdateCharacteristic()
     {
+        //Update health bar
         healthBar.fillAmount = currentHealth / maxHealth;
         healthText.text = $"{maxHealth}/{currentHealth}";
-
+        
+        //Update Armmor bar
         arrmoreBar.fillAmount = currentArmmor / maxArmmor;
         arrmoreText.text = $"{maxArmmor}/{currentArmmor}";
 
+        //Update mana bar
         manaBar.fillAmount = currentMana / maxMana;
         manaText.text = $"{maxMana}/{currentMana}";
     }
@@ -120,7 +154,10 @@ public class PlayerSystem : MonoBehaviour
         {
             currentHealth -= damage;
         }
-        
+        if (currentHealth <= 0) gameManager.Restart(); // if player have zero or less hp than game restart
+
+        timerArrmor = couldownArmorRest;
+
     }
     private void RestorationOfProtection()
     {
@@ -135,25 +172,9 @@ public class PlayerSystem : MonoBehaviour
         }
     }
 
-    public void AddHealth(int addVoulum)
-    {
-        currentHealth += addVoulum;
-        if(currentHealth >= maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-    public void AddMana(int addVoulum)
-    {
-        currentMana += addVoulum;
-        if(currentMana >= maxMana)
-        {
-            currentMana = maxMana;
-        }
-    }
-
     private void SpawnWeapoint()
     {
+        //Create weapoint at scene
         Weapoint = Instantiate(weapoints[currentWeapoint], pointWeapoint.position, Quaternion.Euler(0, 0, 0));
         Weapoint.transform.SetParent(pointWeapoint);
         weapointSystem = Weapoint.GetComponent<WeapointSystem>();
@@ -161,6 +182,7 @@ public class PlayerSystem : MonoBehaviour
     }
     private void ChengeWeapoint()
     {
+        //Chenge weapoint if player have more 1 weapon
         if (weapoints.Length > 0)
         {
             currentWeapoint += 1;
@@ -177,7 +199,6 @@ public class PlayerSystem : MonoBehaviour
     }
     public void Attack()
     {
-        Debug.Log("Attack");
         if (typeWeapoint == "Nothing")
         {
             Collider2D[] targets = Physics2D.OverlapCircleAll(pointWeapoint.position, range, enemyLayer);

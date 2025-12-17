@@ -5,50 +5,45 @@ using UnityEngine.EventSystems;
 
 public class EnemySystem : MonoBehaviour
 {
-    [Header("Characteristic")]
+    [Header("Stats")]
     [SerializeField] private int health;
     [SerializeField] private float speed;
     [SerializeField] private int damage;
-    [SerializeField] private int criticalDamage;
+
+    [Header("Attack")]
     [SerializeField] private float radiusAttack;
+    [SerializeField] private float couldown;
+    public float timerCouldown;
     [Space(10)]
 
-    [Header("Weapoint")]
-    [SerializeField] private string typeWeapoint;
-    [SerializeField] private WeapointSystem weapoint;
-    
-    [Space(10)]
-
-    [Header("Radar Enemy Settings")]
+    [Header("Radar")]
     [SerializeField] private float radiusRadar;
     [SerializeField] private LayerMask playerLayer;
     [Space(10)]
 
-    [Header("Patrol Setings")]
+    [Header("Patrol")]
     [SerializeField] private Collider2D[] targets;
     [SerializeField] private Transform[] patrolPositions;
     [SerializeField] private int currentPoint;
     [Space(10)]
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip damageSFX;
+
     public GameObject roomM;
-
-    private Rigidbody2D rb;
-    private Animator animator;
-
-    void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        CheckWeapoint();
-    }
 
     void FixedUpdate()
     {
-        DetectedPlayer();
+        timerCouldown -= Time.fixedDeltaTime; //Reduce attack cooldown
+        DetectedPlayer(); // Detect and act
     }
 
     public void TakeDamage(int value)
     {
         health -= value;
+        audioSource.PlayOneShot(damageSFX); // Play damage sound effect one time 
+        //Death
         if (health < 0)
         {
             Destroy(gameObject);
@@ -57,17 +52,23 @@ public class EnemySystem : MonoBehaviour
     }
     public void DetectedPlayer()
     {
+        //Detect player in circle
         targets = Physics2D.OverlapCircleAll(transform.position, radiusRadar, playerLayer);
         if (targets.Length > 0)
         {
+            // if distance from player to enme more for radiuse attack, if distace low this enemy attack player
             if (Vector2.Distance(transform.position, targets[0].transform.position) > radiusAttack)
             {
                 transform.position = Vector2.MoveTowards(transform.position, targets[0].transform.position, speed * Time.fixedDeltaTime);
             }
+            else
+            {
+                Attack();
+            }
         }
         else
         {
-            PatrolEnemy();
+            //PatrolEnemy();
         }
     }
     private void PatrolEnemy()
@@ -82,27 +83,19 @@ public class EnemySystem : MonoBehaviour
         }
     }
 
-    void CheckWeapoint()
-    {
-        if (weapoint == null) typeWeapoint = "Nothing";
-        else typeWeapoint = weapoint.type;
-        if (typeWeapoint == "Gun")
-        {
-            damage = weapoint.damage;
-            criticalDamage = weapoint.criticalDamage;
-            //radiusAttack = weapoint.radiusAttack;
-        }
-        else if (typeWeapoint == "Nothing")
-        {
-
-        }
-    }
-
     void Attack()
     {
-        if (Vector2.Distance(transform.position, targets[0].transform.position) <= radiusAttack)
+        Collider2D[] targets = Physics2D.OverlapCircleAll(gameObject.transform.position, radiusAttack, playerLayer);
+        if (targets.Length > 0)
         {
-            
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (timerCouldown <= 0)
+                {
+                    targets[i].GetComponent<PlayerSystem>().TakeDamage(damage);
+                    timerCouldown = couldown;
+                }
+            }
         }
 
     }
