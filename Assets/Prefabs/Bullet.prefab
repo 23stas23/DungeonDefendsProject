@@ -130,9 +130,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 2
-  speed: 4
+  speed: 5
   time: 5
-  rb: {fileID: 5598563629528242492}
 --- !u!70 &2744729327068889063
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

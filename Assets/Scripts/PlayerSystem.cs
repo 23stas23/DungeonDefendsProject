@@ -174,6 +174,8 @@ public class PlayerSystem : MonoBehaviour
 
     private void SpawnWeapoint()
     {
+        if (Weapoint != null) Destroy(Weapoint);
+
         //Create weapoint at scene
         Weapoint = Instantiate(weapoints[currentWeapoint], pointWeapoint.position, Quaternion.Euler(0, 0, 0));
         Weapoint.transform.SetParent(pointWeapoint);

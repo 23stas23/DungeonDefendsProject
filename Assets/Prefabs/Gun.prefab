@@ -201,7 +201,7 @@ MonoBehaviour:
   coulDown: 0.5
   shootPoint: {fileID: 5158953455986737338}
   audioSource: {fileID: 2988445126010796085}
-  damageSFX: {fileID: 8300000, guid: 7f6572813edd4bd409ec94a47c59db84, type: 3}
+  shootSFX: {fileID: 0}
 --- !u!82 &2988445126010796085
 AudioSource:
   m_ObjectHideFlags: 0
@@ -214,7 +214,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 7f6572813edd4bd409ec94a47c59db84, type: 3}
   m_Resource: {fileID: 8300000, guid: 7f6572813edd4bd409ec94a47c59db84, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
